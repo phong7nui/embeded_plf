@@ -1,87 +1,52 @@
-from sys import argv
 import os
-import argparse
-import datetime
 
-include_dir="include\\"
-source_dir="src\\"
-
-
-header_note=('/**\n'+
-'******************************************************************************\n'+
-'* @file    %s\n'+
-'* @author  RBRO/PJ-IU\n'+
-'* @version V1.0.0\n'+
-'* @date    %s\n'+
-'* @brief   \n'+
-'******************************************************************************\n'+
-'*/\n')
-
-
-def check(compName,subdirectory,newDirectory):
-        
-    if newDirectory:
-        isNotExist = not os.path.exists(include_dir +subdirectory+compName) and not os.path.exists(source_dir +subdirectory+compName)
-        return isNotExist
-    else:
-
-        lowcaseName=compName.lower()
-        isNotExist = not os.path.exists(include_dir +subdirectory+lowcaseName+".hpp") and not os.path.exists(include_dir +subdirectory+lowcaseName+".inl") and not os.path.exists(source_dir +subdirectory+lowcaseName+".cpp")
-        return isNotExist
-    return False
-
-
-def main():
-    parser = argparse.ArgumentParser(description="This script create a the directories, the source and the include files for the new component.")
-    parser.add_argument("-c","--component",help="Get the name of the new component.",required=True,dest="component")
-    parser.add_argument("-sb","--subdirectory",help="Get the path in for the components.",dest="subdir")
-    parser.add_argument("-n","--newDirectory",help="Make new directory with the component name in the subdirectory.",action='store_true',dest="isCreateDir")
-
-    parser_result=parser.parse_args()
-
-
-    print("Component name:",parser_result.component)
-    print("Subdirectory:",parser_result.subdir)
-    print("Create a new directory:",parser_result.isCreateDir)
-    if (parser_result.subdir is None):
-        parser_result.subdir=""
-    elif (parser_result.subdir[-1]!='\\' or parser_result.subdir[-1]!='/'):
-        parser_result.subdir+='\\'
+def create_component(category, component_name, project_root="."):
     
-    isNotExist=check(parser_result.component,parser_result.subdir,parser_result.isCreateDir)
-    if isNotExist:
-        today = datetime.date.today()
-        source_path = source_dir + parser_result.subdir
-        include_path = include_dir + parser_result.subdir
-        src_include = parser_result.subdir
-        if parser_result.isCreateDir:
-            os.makedirs(include_dir + parser_result.subdir + parser_result.component)
-            os.makedirs(source_dir + parser_result.subdir + parser_result.component)
-            source_path = source_dir + parser_result.subdir + parser_result.component+"\\"
-            include_path = include_dir + parser_result.subdir + parser_result.component+"\\"
-            src_include= parser_result.subdir + parser_result.component+"/"
-        if not os.path.exists(include_dir +parser_result.subdir):
-            os.makedirs(include_dir +parser_result.subdir)
-        if not os.path.exists(source_dir +parser_result.subdir):
-            os.makedirs(source_dir +parser_result.subdir)
-        lowercaseName=parser_result.component.lower()
-        file = open(include_path+lowercaseName+".hpp", 'w')
-        # note=header_note%lowercaseName
-        file.writelines(header_note%(lowercaseName+".hpp",today))
-        file.writelines("#ifndef " + lowercaseName.upper() + "_H\n")
-        file.writelines("#define " + lowercaseName.upper() + "_H\n")
-        file.writelines('#include "' + lowercaseName +'.inl"\n')
-        file.writelines("#endif // " + lowercaseName.upper() + "_H\n")
-        file.close()
-        file = open(include_path+lowercaseName + ".inl", 'w')
-        file.writelines("\n")
-        file.close()
-        file = open(source_path+lowercaseName + ".cpp", 'w')
-        file.writelines("#include <" +src_include + lowercaseName +".hpp>\n")
-        file.close()
+    valid_categories = ["brain", "drivers", "periodics", "utils"]
+
+    print(os.getcwd())
+    
+    if category not in valid_categories:
+        print("Invalid category, try again..")
+        return
+
+    include_path = os.path.join(project_root, "include", category)
+    source_path = os.path.join(project_root, "source", category)
+
+    print(include_path)
+    print(source_path)
+
+    os.makedirs(include_path, exist_ok=True)
+    os.makedirs(source_path, exist_ok=True)
+
+    #Create header file
+    header_file_path = os.path.join(include_path, f"{component_name}.hpp")
+    if not os.path.exists(header_file_path):
+        with open(header_file_path, "w") as f:
+            f.write(f"#ifndef {component_name.upper()}_HPP\n")
+            f.write(f"#define {component_name.upper()}_HPP\n\n")
+            f.write(f"// TODO: Add your code here\n\n")
+            f.write(f"#endif // {component_name.upper()}_HPP\n")
+        print(f"Created: {header_file_path}")
     else:
-        print("component already exists")
+        print(f"File already exists: {header_file_path}")
 
+    #Create source file
+    source_file_path = os.path.join(source_path, f"{component_name}.cpp")
+    if not os.path.exists(source_file_path):
+        with open(source_file_path, "w") as f:
+            f.write(f'#include "{category}/{component_name}.hpp"\n\n')
+            f.write(f"// TODO: Add your code here\n")
+        print(f"Created: {source_file_path}")
+    else:
+        print(f"File already exists: {source_file_path}")
 
-if __name__=="__main__":
-    main()
+category = input("Type the category of the new component (brain, drivers, periodics, utils): ").strip().lower()
+component_name = input("Type the name of the new component: ").strip().lower()
+
+if component_name[0].isalpha():
+    create_component(category, component_name)
+else:
+    print("Invalid component name")
+
+    
